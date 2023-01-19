@@ -1,0 +1,101 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://www.choice.com/hotel-ws"
+           targetNamespace="http://www.choice.com/hotel-ws" elementFormDefault="qualified">
+
+    <xs:complexType name="hotelInfo">
+        <xs:sequence>
+            <xs:element name="hotelId" type="xs:long"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="address" type="xs:string"/>
+            <xs:element name="rating" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="serviceStatus">
+        <xs:sequence>
+            <xs:element name="statusCode" type="xs:string"/>
+            <xs:element name="message" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="getHotelByIdRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="hotelId" type="xs:long"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getHotelByIdResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="hotelInfo" type="tns:hotelInfo"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getAllHotelsRequest">
+        <xs:complexType/>
+    </xs:element>
+
+    <xs:element name="getAllHotelsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="hotelInfo" type="tns:hotelInfo" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="addHotelRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="address" type="xs:string"/>
+                <xs:element name="rating" type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="addHotelResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="serviceStatus" type="tns:serviceStatus"/>
+                <xs:element name="hotelInfo" type="tns:hotelInfo"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="updateHotelRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="hotelInfo" type="tns:hotelInfo"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="updateHotelResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="serviceStatus" type="tns:serviceStatus"/>
+                <xs:element name="hotelInfo" type="tns:hotelInfo"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deleteHotelRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="hotelId" type="xs:long"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deleteHotelResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="serviceStatus" type="tns:serviceStatus"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
