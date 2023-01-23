@@ -2,9 +2,9 @@ package com.choice.webservice.endpoints;
 
 import com.choice.webservice.entity.Hotel;
 import com.choice.webservice.service.HotelService;
-import com.choiceWS.gs_ws.*;
+import com.choice.gs_ws.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
@@ -14,14 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Endpoint
+@RequiredArgsConstructor
 public class HotelEndpoint {
     private static final String NAMESPACE_URI = "http://www.choice.com/hotel-ws";
-    @Autowired
-    private final HotelService hotelService;
 
-    public HotelEndpoint(HotelService hotelService) {
-        this.hotelService = hotelService;
-    }
+    private final HotelService hotelService;
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getHotelByIdRequest")
     @ResponsePayload

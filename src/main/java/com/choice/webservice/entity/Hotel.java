@@ -1,11 +1,15 @@
 package com.choice.webservice.entity;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 @Entity
 @Table(name = "hotels")
+@Getter @Setter @NoArgsConstructor
 public class Hotel implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -23,36 +27,4 @@ public class Hotel implements Serializable {
 
     @Column(name = "rating")
     private int rating;
-
-    public long getHotelId() {
-        return hotelId;
-    }
-
-    public void setHotelId(long hotelId) {
-        this.hotelId = hotelId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
 }
