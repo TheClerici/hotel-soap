@@ -1,6 +1,8 @@
 package com.choice.webservice.endpoints;
 
+import com.choice.webservice.entity.Amenity;
 import com.choice.webservice.entity.Hotel;
+import com.choice.webservice.service.AmenityService;
 import com.choice.webservice.service.HotelService;
 import com.choice.gs_ws.*;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +19,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HotelEndpoint {
     private static final String NAMESPACE_URI = "http://www.choice.com/hotel-ws";
-
     private final HotelService hotelService;
+    private final AmenityService amenityService;
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getHotelByIdRequest")
     @ResponsePayload
     public GetHotelByIdResponse getHotel(@RequestPayload GetHotelByIdRequest request) {
         GetHotelByIdResponse response = new GetHotelByIdResponse();
+
         HotelInfo hotelInfo = new HotelInfo();
-        BeanUtils.copyProperties(hotelService.getHotelById(request.getHotelId()), hotelInfo);
+        Hotel hotel = hotelService.getHotelById(request.getHotelId());
+        BeanUtils.copyProperties(hotel, hotelInfo);
+        for(Amenity amenity: hotel.getAmenities()) {
+            AmenityInfo amenityInfo = new AmenityInfo();
+            BeanUtils.copyProperties(amenity, amenityInfo);
+            hotelInfo.getAmenityInfo().add(amenityInfo);
+        }
         response.setHotelInfo(hotelInfo);
         return response;
     }
@@ -34,11 +43,17 @@ public class HotelEndpoint {
     @ResponsePayload
     public GetAllHotelsResponse getAllHotels() {
         GetAllHotelsResponse response = new GetAllHotelsResponse();
+
         List<HotelInfo> hotelInfoList = new ArrayList<>();
         List<Hotel> hotelList = hotelService.getAllHotels();
         for (Hotel hotel : hotelList) {
             HotelInfo hotelInfo = new HotelInfo();
             BeanUtils.copyProperties(hotel, hotelInfo);
+            for(Amenity amenity: hotel.getAmenities()) {
+                AmenityInfo amenityInfo = new AmenityInfo();
+                BeanUtils.copyProperties(amenity, amenityInfo);
+                hotelInfo.getAmenityInfo().add(amenityInfo);
+            }
             hotelInfoList.add(hotelInfo);
         }
         response.getHotelInfo().addAll(hotelInfoList);
@@ -50,6 +65,7 @@ public class HotelEndpoint {
     public AddHotelResponse addHotel(@RequestPayload AddHotelRequest request) {
         AddHotelResponse response = new AddHotelResponse();
         ServiceStatus serviceStatus = new ServiceStatus();
+
         Hotel hotel = new Hotel();
         hotel.setName(request.getName());
         hotel.setAddress(request.getAddress());
@@ -75,9 +91,25 @@ public class HotelEndpoint {
     public UpdateHotelResponse updateHotel(@RequestPayload UpdateHotelRequest request) {
         UpdateHotelResponse response = new UpdateHotelResponse();
         ServiceStatus serviceStatus = new ServiceStatus();
-        Hotel hotel = new Hotel();
-        BeanUtils.copyProperties(request.getHotelInfo(), hotel);
+        HotelInfo hotelInfo = new HotelInfo();
+
+        Hotel hotel = hotelService.getHotelById(request.getHotelInfo().getHotelId());
+        BeanUtils.copyProperties(hotel, hotelInfo);
+        for(Amenity amenity: hotel.getAmenities()) {
+            AmenityInfo amenityInfo = new AmenityInfo();
+            BeanUtils.copyProperties(amenity, amenityInfo);
+            hotelInfo.getAmenityInfo().add(amenityInfo);
+        }
+
+        HotelInfo reqHotelInfo = request.getHotelInfo();
+        hotelInfo.setName(reqHotelInfo.getName());
+        hotelInfo.setAddress(reqHotelInfo.getAddress());
+        hotelInfo.setRating(reqHotelInfo.getRating());
+
+        BeanUtils.copyProperties(hotelInfo, hotel);
         hotelService.updateHotel(hotel);
+        response.setHotelInfo(hotelInfo);
+
         serviceStatus.setStatusCode("SUCCESS");
         serviceStatus.setMessage("Hotel Updated Successfully");
         response.setServiceStatus(serviceStatus);
@@ -87,17 +119,80 @@ public class HotelEndpoint {
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "deleteHotelRequest")
     @ResponsePayload
     public DeleteHotelResponse deleteHotel(@RequestPayload DeleteHotelRequest request) {
-        Hotel hotel = hotelService.getHotelById(request.getHotelId());
+        DeleteHotelResponse response = new DeleteHotelResponse();
         ServiceStatus serviceStatus = new ServiceStatus();
+
+        Hotel hotel = hotelService.getHotelById(request.getHotelId());
         if (hotel == null) {
             serviceStatus.setStatusCode("FAIL");
-            serviceStatus.setMessage("Hotel Not Available");
+            serviceStatus.setMessage("Hotel Not Found");
         } else {
+            Hotel deleteHotel = new Hotel(request.getHotelId(), "default", "default", 1);
+            hotelService.updateHotel(deleteHotel);
             hotelService.deleteHotel(hotel);
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Hotel Deleted Successfully");
         }
-        DeleteHotelResponse response = new DeleteHotelResponse();
+        response.setServiceStatus(serviceStatus);
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "addAmenityRequest")
+    @ResponsePayload
+    public AddAmenityResponse addAmenity(@RequestPayload AddAmenityRequest request) {
+        AddAmenityResponse response = new AddAmenityResponse();
+        ServiceStatus serviceStatus = new ServiceStatus();
+        AmenityInfo amenityInfo = new AmenityInfo();
+
+        Hotel hotel = hotelService.getHotelById(request.getHotelId());
+        if (hotel == null) {
+            serviceStatus.setStatusCode("FAIL");
+            serviceStatus.setMessage("Hotel Not Found");
+            response.setServiceStatus(serviceStatus);
+            return response;
+        }
+
+        Amenity amenity = amenityService.findAmenity(request.getAmenityId());
+        if (amenity == null) {
+            serviceStatus.setStatusCode("FAIL");
+            serviceStatus.setMessage("Amenity Not Found");
+        } else {
+            serviceStatus.setStatusCode("SUCCESS");
+            serviceStatus.setMessage("Amenity Added Successfully");
+            BeanUtils.copyProperties(amenity, amenityInfo);
+            hotel.getAmenities().add(amenity);
+            hotelService.updateHotel(hotel);
+        }
+        response.setAmenityInfo(amenityInfo);
+        response.setServiceStatus(serviceStatus);
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "deleteAmenityRequest")
+    @ResponsePayload
+    public DeleteAmenityResponse deleteAmenity(@RequestPayload DeleteAmenityRequest request) {
+        DeleteAmenityResponse response = new DeleteAmenityResponse();
+        ServiceStatus serviceStatus = new ServiceStatus();
+
+        Hotel hotel = hotelService.getHotelById(request.getHotelId());
+        if (hotel == null) {
+            serviceStatus.setStatusCode("FAIL");
+            serviceStatus.setMessage("Hotel Not Found");
+            response.setServiceStatus(serviceStatus);
+            return response;
+        }
+
+        Amenity amenity = amenityService.findAmenity(request.getAmenityId());
+        if (amenity == null) {
+            serviceStatus.setStatusCode("FAIL");
+            serviceStatus.setMessage("Amenity Not Found");
+        } else {
+            serviceStatus.setStatusCode("SUCCESS");
+            serviceStatus.setMessage("Amenity Deleted Successfully");
+            hotel.deleteAmenityFromSet(amenity);
+            hotelService.updateHotel(hotel);
+        }
+
         response.setServiceStatus(serviceStatus);
         return response;
     }
