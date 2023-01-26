@@ -19,6 +19,13 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="paginationInfo">
+        <xs:sequence>
+            <xs:element name="pageNumber" type="xs:int"/>
+            <xs:element name="pageSize" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="serviceStatus">
         <xs:sequence>
             <xs:element name="statusCode" type="xs:string"/>
@@ -42,16 +49,32 @@
         </xs:complexType>
     </xs:element>
 
-    <!-- TODO: add pagination and filtering -->
     <xs:element name="getAllHotelsRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name=""></xs:element>
+                <xs:element name="paginationInfo" type="tns:paginationInfo"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
     <xs:element name="getAllHotelsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="hotelInfo" type="tns:hotelInfo" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getAllHotelsWithFilteringRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="paginationInfo" type="tns:paginationInfo"/>
+                <xs:element name="nameFilter" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getAllHotelsWithFilteringResponse">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="hotelInfo" type="tns:hotelInfo" maxOccurs="unbounded"/>

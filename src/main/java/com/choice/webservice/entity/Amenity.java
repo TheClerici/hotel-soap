@@ -30,9 +30,9 @@ public class Amenity implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST, mappedBy = "amenities")
     Set<Hotel> hotels;
 
-    public void deleteHotelFromSet(Hotel hotel) {
+    /* public void deleteHotelFromSet(Hotel hotel) {
         hotels.remove(hotel);
-    }
+    } */
 
     @Override
     public boolean equals(Object o) {

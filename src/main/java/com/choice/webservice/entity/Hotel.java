@@ -47,10 +47,10 @@ public class Hotel implements Serializable {
         this.rating = rating;
     }
 
-    public void deleteAmenityFromSet(Amenity amenity) {
+/*    public void deleteAmenityFromSet(Amenity amenity) {
         amenities.remove(amenity);
         amenity.deleteHotelFromSet(this);
-    }
+    } */
 
     @Override
     public boolean equals(Object o) {

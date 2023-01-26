@@ -41,11 +41,32 @@ public class HotelEndpoint {
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getAllHotelsRequest")
     @ResponsePayload
-    public GetAllHotelsResponse getAllHotels() {
+    public GetAllHotelsResponse getAllHotels(@RequestPayload GetAllHotelsRequest request) {
         GetAllHotelsResponse response = new GetAllHotelsResponse();
 
         List<HotelInfo> hotelInfoList = new ArrayList<>();
-        List<Hotel> hotelList = hotelService.getAllHotels();
+        List<Hotel> hotelList = hotelService.getAllHotels(request);
+        for (Hotel hotel : hotelList) {
+            HotelInfo hotelInfo = new HotelInfo();
+            BeanUtils.copyProperties(hotel, hotelInfo);
+            for(Amenity amenity: hotel.getAmenities()) {
+                AmenityInfo amenityInfo = new AmenityInfo();
+                BeanUtils.copyProperties(amenity, amenityInfo);
+                hotelInfo.getAmenityInfo().add(amenityInfo);
+            }
+            hotelInfoList.add(hotelInfo);
+        }
+        response.getHotelInfo().addAll(hotelInfoList);
+        return response;
+    }
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getAllHotelsWithFilteringRequest")
+    @ResponsePayload
+    public GetAllHotelsWithFilteringResponse getAllHotelsWithFiltering(@RequestPayload GetAllHotelsWithFilteringRequest request) {
+        GetAllHotelsWithFilteringResponse response = new GetAllHotelsWithFilteringResponse();
+
+        List<HotelInfo> hotelInfoList = new ArrayList<>();
+        List<Hotel> hotelList = hotelService.getAllHotelsWithFiltering(request);
         for (Hotel hotel : hotelList) {
             HotelInfo hotelInfo = new HotelInfo();
             BeanUtils.copyProperties(hotel, hotelInfo);
@@ -189,7 +210,8 @@ public class HotelEndpoint {
         } else {
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Amenity Deleted Successfully");
-            hotel.deleteAmenityFromSet(amenity);
+            //hotel.deleteAmenityFromSet(amenity);
+            hotel.getAmenities().remove(amenity);
             hotelService.updateHotel(hotel);
         }
 
