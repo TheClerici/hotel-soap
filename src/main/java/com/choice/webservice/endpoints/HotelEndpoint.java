@@ -91,19 +91,20 @@ public class HotelEndpoint {
         hotel.setName(request.getName());
         hotel.setAddress(request.getAddress());
         hotel.setRating(request.getRating());
+
         boolean flag = hotelService.addHotel(hotel);
         if (!flag) {
             serviceStatus.setStatusCode("CONFLICT");
             serviceStatus.setMessage("Hotel Already Available on DB");
-            response.setServiceStatus(serviceStatus);
         } else {
             HotelInfo hotelInfo = new HotelInfo();
             BeanUtils.copyProperties(hotel, hotelInfo);
             response.setHotelInfo(hotelInfo);
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Hotel Added Successfully");
-            response.setServiceStatus(serviceStatus);
         }
+
+        response.setServiceStatus(serviceStatus);
         return response;
     }
 
@@ -115,6 +116,13 @@ public class HotelEndpoint {
         HotelInfo hotelInfo = new HotelInfo();
 
         Hotel hotel = hotelService.getHotelById(request.getHotelInfo().getHotelId());
+        if (hotel == null) {
+            serviceStatus.setStatusCode("FAIL");
+            serviceStatus.setMessage("Hotel Not Found");
+            response.setServiceStatus(serviceStatus);
+            return response;
+        }
+
         BeanUtils.copyProperties(hotel, hotelInfo);
         for(Amenity amenity: hotel.getAmenities()) {
             AmenityInfo amenityInfo = new AmenityInfo();
@@ -126,13 +134,17 @@ public class HotelEndpoint {
         hotelInfo.setName(reqHotelInfo.getName());
         hotelInfo.setAddress(reqHotelInfo.getAddress());
         hotelInfo.setRating(reqHotelInfo.getRating());
-
         BeanUtils.copyProperties(hotelInfo, hotel);
-        hotelService.updateHotel(hotel);
-        response.setHotelInfo(hotelInfo);
 
-        serviceStatus.setStatusCode("SUCCESS");
-        serviceStatus.setMessage("Hotel Updated Successfully");
+        boolean flag = hotelService.addHotel(hotel);
+        if (!flag) {
+            serviceStatus.setStatusCode("CONFLICT");
+            serviceStatus.setMessage("Hotel Already Available on DB");
+        } else {
+            response.setHotelInfo(hotelInfo);
+            serviceStatus.setStatusCode("SUCCESS");
+            serviceStatus.setMessage("Hotel Updated Successfully");
+        }
         response.setServiceStatus(serviceStatus);
         return response;
     }
@@ -178,6 +190,14 @@ public class HotelEndpoint {
             serviceStatus.setStatusCode("FAIL");
             serviceStatus.setMessage("Amenity Not Found");
         } else {
+            for(Amenity amenityInHotel: hotel.getAmenities()) {
+                if (amenityInHotel.getAmenityId().equals(amenity.getAmenityId())) {
+                    serviceStatus.setStatusCode("CONFLICT");
+                    serviceStatus.setMessage("Amenity Already Available on Hotel");
+                    response.setServiceStatus(serviceStatus);
+                    return response;
+                }
+            }
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Amenity Added Successfully");
             BeanUtils.copyProperties(amenity, amenityInfo);
@@ -208,11 +228,19 @@ public class HotelEndpoint {
             serviceStatus.setStatusCode("FAIL");
             serviceStatus.setMessage("Amenity Not Found");
         } else {
-            serviceStatus.setStatusCode("SUCCESS");
-            serviceStatus.setMessage("Amenity Deleted Successfully");
-            //hotel.deleteAmenityFromSet(amenity);
-            hotel.getAmenities().remove(amenity);
-            hotelService.updateHotel(hotel);
+            for(Amenity amenityInHotel: hotel.getAmenities()) {
+                if (amenityInHotel.getAmenityId().equals(amenity.getAmenityId())) {
+                    serviceStatus.setStatusCode("SUCCESS");
+                    serviceStatus.setMessage("Amenity Deleted Successfully");
+                    //hotel.deleteAmenityFromSet(amenity);
+                    hotel.getAmenities().remove(amenity);
+                    hotelService.updateHotel(hotel);
+                    response.setServiceStatus(serviceStatus);
+                    return response;
+                }
+            }
+            serviceStatus.setStatusCode("CONFLICT");
+            serviceStatus.setMessage("Amenity Not Available on Hotel");
         }
 
         response.setServiceStatus(serviceStatus);
