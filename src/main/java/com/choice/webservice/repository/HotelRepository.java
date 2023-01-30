@@ -11,8 +11,13 @@ import java.util.List;
 
 @Repository
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
+
     Hotel findByHotelId(long hotelId);
-    List<Hotel> findByNameAndAddressAndRating(String name, String address, int rating);
+
+    List<Hotel> findByName(String name);
+
+    List<Hotel> findByNameAndAddressAndRating(String name, String address, Integer rating);
+
     List<Hotel> findByNameContaining(String name, Pageable pageable);
 
     //@Query(value = "SELECT * FROM hotels", nativeQuery = true)

@@ -18,6 +18,7 @@ import static javax.persistence.CascadeType.PERSIST;
 @Setter
 @ToString
 public class Hotel implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
     @Id
@@ -29,7 +30,7 @@ public class Hotel implements Serializable {
     @Column(name = "hotel_address")
     private String address;
     @Column(name = "hotel_rating")
-    private int rating;
+    private Integer rating;
     @ManyToMany(fetch = FetchType.EAGER, cascade = {
             PERSIST
     })
@@ -47,7 +48,7 @@ public class Hotel implements Serializable {
         this.rating = rating;
     }
 
-/*    public void deleteAmenityFromSet(Amenity amenity) {
+    /*    public void deleteAmenityFromSet(Amenity amenity) {
         amenities.remove(amenity);
         amenity.deleteHotelFromSet(this);
     } */
