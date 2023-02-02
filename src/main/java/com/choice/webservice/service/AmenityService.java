@@ -2,13 +2,13 @@ package com.choice.webservice.service;
 
 import com.choice.webservice.entity.Amenity;
 import com.choice.webservice.repository.AmenityRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AmenityService {
-    private AmenityRepository amenityRepository;
+    private final AmenityRepository amenityRepository;
 
     public Amenity findAmenity(Long id) {
         return amenityRepository.findByAmenityId(id);

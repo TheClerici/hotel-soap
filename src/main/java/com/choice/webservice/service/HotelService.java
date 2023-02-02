@@ -5,7 +5,6 @@ import com.choice.webservice.entity.Amenity;
 import com.choice.webservice.entity.Hotel;
 import com.choice.webservice.repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class HotelService {
-
     private final HotelRepository hotelRepository;
     private final AmenityService amenityService;
 
@@ -91,13 +89,13 @@ public class HotelService {
             serviceStatus.setStatusCode("BAD_REQUEST");
             serviceStatus.setMessage("Hotel Already Available on DB");
         } else {
-            hotelRepository.save(hotel);
+            Hotel savedHotel = hotelRepository.save(hotel);
 
             HotelInfo hotelInfo = new HotelInfo();
-            hotelInfo.setHotelId(hotel.getHotelId());
-            hotelInfo.setName(hotel.getName());
-            hotelInfo.setAddress(hotel.getAddress());
-            hotelInfo.setRating(hotel.getRating());
+            hotelInfo.setHotelId(savedHotel.getHotelId());
+            hotelInfo.setName(savedHotel.getName());
+            hotelInfo.setAddress(savedHotel.getAddress());
+            hotelInfo.setRating(savedHotel.getRating());
 
             response.setHotelInfo(hotelInfo);
             serviceStatus.setStatusCode("SUCCESS");
@@ -132,7 +130,8 @@ public class HotelService {
 
         for(Amenity amenity: hotel.getAmenities()) {
             AmenityInfo amenityInfo = new AmenityInfo();
-            BeanUtils.copyProperties(amenity, amenityInfo);
+            amenityInfo.setAmenityId(amenity.getAmenityId());
+            amenityInfo.setName(amenity.getName());
             hotelInfo.getAmenityInfo().add(amenityInfo);
         }
 
@@ -160,10 +159,7 @@ public class HotelService {
             serviceStatus.setStatusCode("NOT_FOUND");
             serviceStatus.setMessage("Hotel Not Found");
         } else {
-            //TODO: buscar la manera de poder borrar el hotel sin save.
-            Hotel deleteHotel = new Hotel(request.getHotelId(), "default", "default", 1);
-            hotelRepository.save(deleteHotel);
-            hotelRepository.delete(hotel);
+            hotelRepository.deleteById(request.getHotelId());
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Hotel Deleted Successfully");
         }

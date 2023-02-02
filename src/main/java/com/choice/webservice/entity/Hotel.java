@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
+import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 
 @Entity
@@ -32,7 +33,8 @@ public class Hotel implements Serializable {
     @Column(name = "hotel_rating")
     private Integer rating;
     @ManyToMany(fetch = FetchType.EAGER, cascade = {
-            PERSIST
+            PERSIST,
+            MERGE
     })
     @JoinTable(
             name = "hotel_amenities",

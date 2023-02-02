@@ -27,7 +27,7 @@ public class Amenity implements Serializable {
     @Column(name = "amenity_name")
     private String name;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST, mappedBy = "amenities")
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "amenities")
     Set<Hotel> hotels;
 
     /* public void deleteHotelFromSet(Hotel hotel) {
