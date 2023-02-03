@@ -4,10 +4,10 @@ import com.choice.webservice.entity.Amenity;
 import com.choice.webservice.entity.Hotel;
 import com.choice.webservice.repository.HotelRepository;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import com.choice.gs_ws.*;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +21,6 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-
 public class HotelServiceTest {
     @InjectMocks
     private HotelService hotelService;
@@ -29,6 +28,8 @@ public class HotelServiceTest {
     private AmenityService amenityService;
     @Mock
     private HotelRepository hotelRepository;
+    @Mock
+    private ErrorService errorService;
 
     @Before
     public void setup() {
@@ -36,7 +37,7 @@ public class HotelServiceTest {
     }
 
     @Test
-    public void shouldGetNotFoundByGetHotelIdResponse() {
+    public void shouldGetNotFoundByGetHotelByIdResponse() {
         GetHotelByIdRequest request = new GetHotelByIdRequest();
         request.setHotelId(10L);
 
@@ -111,6 +112,22 @@ public class HotelServiceTest {
     }
 
     @Test
+    public void shouldGetCheckHotelResponseByAddHotelResponse() {
+        AddHotelRequest request = new AddHotelRequest();
+        request.setName("Gandara");
+        request.setAddress("Blvd Kino 404");
+        request.setRating(5);
+
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("BAD_REQUEST");
+
+        when(errorService.checkHotel(request.getName(), request.getAddress(), request.getRating())).thenReturn(serviceStatus);
+        AddHotelResponse found = hotelService.addHotel(request);
+
+        assertEquals("BAD_REQUEST", found.getServiceStatus().getStatusCode());
+    }
+
+    @Test
     public void shouldGetBadRequestByAddHotelResponse() {
         AddHotelRequest request = new AddHotelRequest();
         request.setName("Gandara");
@@ -121,6 +138,10 @@ public class HotelServiceTest {
         Hotel hotel = new Hotel (1L, "Gandara", "Blvd Kino 404", 5);
         hotelList.add(hotel);
 
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkHotel(request.getName(), request.getAddress(), request.getRating())).thenReturn(serviceStatus);
         when(hotelRepository.findByName(request.getName())).thenReturn(hotelList);
         AddHotelResponse found = hotelService.addHotel(request);
 
@@ -129,7 +150,6 @@ public class HotelServiceTest {
     }
 
     @Test
-    @Ignore
     public void shouldAddHotelResponse() {
         AddHotelRequest request = new AddHotelRequest();
         request.setName("Gandara");
@@ -137,22 +157,48 @@ public class HotelServiceTest {
         request.setRating(5);
 
         Hotel hotel = new Hotel();
+        hotel.setHotelId(1L);
         hotel.setName(request.getName());
         hotel.setAddress(request.getAddress());
         hotel.setRating(request.getRating());
 
         List<Hotel> hotelList = new ArrayList<>();
 
-        when(hotelRepository.findByName(request.getName())).thenReturn(hotelList);
-        when(hotelRepository.save(hotel)).thenReturn(hotel);
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
 
+        when(errorService.checkHotel(request.getName(), request.getAddress(), request.getRating())).thenReturn(serviceStatus);
+        when(hotelRepository.findByName(request.getName())).thenReturn(hotelList);
+        when(hotelRepository.save(Mockito.any())).thenReturn(hotel);
         AddHotelResponse found = hotelService.addHotel(request);
+
         assertEquals("SUCCESS", found.getServiceStatus().getStatusCode());
         assertEquals("Hotel Added Successfully", found.getServiceStatus().getMessage());
         assertEquals(1L, found.getHotelInfo().getHotelId());
         assertEquals("Gandara", found.getHotelInfo().getName());
         assertEquals("Blvd Kino 404", found.getHotelInfo().getAddress());
         assertEquals(5, found.getHotelInfo().getRating());
+    }
+
+    @Test
+    public void shouldGetCheckHotelResponseByUpdateHotelResponse() {
+        UpdateHotelRequest request = new UpdateHotelRequest();
+
+        HotelInfo hotelInfo = new HotelInfo();
+        hotelInfo.setHotelId(1L);
+        hotelInfo.setName("Gandara");
+        hotelInfo.setAddress("Kino 404");
+        hotelInfo.setRating(5);
+        request.setHotelInfo(hotelInfo);
+
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("BAD_REQUEST");
+
+        when(errorService.checkHotel(request.getHotelInfo().getName(),
+                request.getHotelInfo().getAddress(), request.getHotelInfo().getRating())).thenReturn(serviceStatus);
+        UpdateHotelResponse found = hotelService.updateHotel(request);
+
+        assertEquals("BAD_REQUEST", found.getServiceStatus().getStatusCode());
     }
 
     @Test
@@ -163,6 +209,11 @@ public class HotelServiceTest {
         hotelInfo.setHotelId(10L);
         request.setHotelInfo(hotelInfo);
 
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkHotel(request.getHotelInfo().getName(),
+                request.getHotelInfo().getAddress(), request.getHotelInfo().getRating())).thenReturn(serviceStatus);
         when(hotelRepository.findByHotelId(request.getHotelInfo().getHotelId())).thenReturn(null);
         UpdateHotelResponse found = hotelService.updateHotel(request);
 
@@ -188,6 +239,11 @@ public class HotelServiceTest {
         List<Hotel> hotelList = new ArrayList<>();
         hotelList.add(hotel);
 
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkHotel(request.getHotelInfo().getName(),
+                request.getHotelInfo().getAddress(), request.getHotelInfo().getRating())).thenReturn(serviceStatus);
         when(hotelRepository.findByHotelId(request.getHotelInfo().getHotelId())).thenReturn(hotel);
         when(hotelRepository.findByNameAndAddressAndRating(hotel.getName(), hotel.getAddress(), hotel.getRating())).thenReturn(hotelList);
         UpdateHotelResponse found = hotelService.updateHotel(request);
@@ -217,6 +273,11 @@ public class HotelServiceTest {
 
         List<Hotel> hotelList = new ArrayList<>();
 
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkHotel(request.getHotelInfo().getName(),
+                request.getHotelInfo().getAddress(), request.getHotelInfo().getRating())).thenReturn(serviceStatus);
         when(hotelRepository.findByHotelId(request.getHotelInfo().getHotelId())).thenReturn(hotel);
         when(hotelRepository.findByNameAndAddressAndRating(hotel.getName(), hotel.getAddress(), hotel.getRating())).thenReturn(hotelList);
         UpdateHotelResponse found = hotelService.updateHotel(request);

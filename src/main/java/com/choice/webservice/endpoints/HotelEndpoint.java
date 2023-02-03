@@ -1,6 +1,7 @@
 package com.choice.webservice.endpoints;
 
 
+import com.choice.webservice.service.ErrorService;
 import com.choice.webservice.service.HotelService;
 import com.choice.gs_ws.*;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +33,12 @@ public class HotelEndpoint {
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "addHotelRequest")
     @ResponsePayload
     public AddHotelResponse addHotel(@RequestPayload AddHotelRequest request) {
-        checkHotel(request.getName(), request.getAddress(), request.getRating());
         return hotelService.addHotel(request);
     }
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "updateHotelRequest")
     @ResponsePayload
     public UpdateHotelResponse updateHotel(@RequestPayload UpdateHotelRequest request) {
-        checkHotel(request.getHotelInfo().getName(), request.getHotelInfo().getAddress(), request.getHotelInfo().getRating());
         return hotelService.updateHotel(request);
     }
 
@@ -59,20 +58,6 @@ public class HotelEndpoint {
     @ResponsePayload
     public DeleteAmenityResponse deleteAmenity(@RequestPayload DeleteAmenityRequest request) {
         return hotelService.deleteAmenity(request);
-    }
-
-    public void checkHotel(String name, String address, Integer rating) {
-        if (name == null && address == null && rating == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hotel has no body. Please fill!");
-        else if (name == null || name.length() < 1)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hotel has no Name. Please fill!");
-        else if (address == null || address.length() < 1)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hotel has no Address. Please fill!");
-        else if (rating == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hotel has no Rating. Please fill!");
-
-        if (rating < 0 || rating > 5)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hotel Rating should be between 0 and 5");
     }
 }
 

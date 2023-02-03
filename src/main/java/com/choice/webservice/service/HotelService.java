@@ -17,6 +17,7 @@ import java.util.List;
 public class HotelService {
     private final HotelRepository hotelRepository;
     private final AmenityService amenityService;
+    private final ErrorService errorService;
 
     public GetHotelByIdResponse getHotelById(GetHotelByIdRequest request) {
         GetHotelByIdResponse response = new GetHotelByIdResponse();
@@ -44,7 +45,6 @@ public class HotelService {
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Hotel Found in DB");
         }
-
         response.setServiceStatus(serviceStatus);
         return response;
     }
@@ -62,7 +62,7 @@ public class HotelService {
             hotelInfo.setAddress(hotel.getAddress());
             hotelInfo.setRating(hotel.getRating());
 
-            for(Amenity amenity: hotel.getAmenities()) {
+            for (Amenity amenity : hotel.getAmenities()) {
                 AmenityInfo amenityInfo = new AmenityInfo();
                 amenityInfo.setAmenityId(amenity.getAmenityId());
                 amenityInfo.setName(amenity.getName());
@@ -70,14 +70,18 @@ public class HotelService {
             }
             hotelInfoList.add(hotelInfo);
         }
-
         response.getHotelInfo().addAll(hotelInfoList);
         return response;
     }
 
     public AddHotelResponse addHotel(AddHotelRequest request) {
         AddHotelResponse response = new AddHotelResponse();
-        ServiceStatus serviceStatus = new ServiceStatus();
+        ServiceStatus serviceStatus = errorService.checkHotel(request.getName(), request.getAddress(), request.getRating());
+
+        if (!serviceStatus.getStatusCode().equals("CHECKED")) {
+            response.setServiceStatus(serviceStatus);
+            return response;
+        }
 
         Hotel hotel = new Hotel();
         hotel.setName(request.getName());
@@ -101,14 +105,18 @@ public class HotelService {
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Hotel Added Successfully");
         }
-
         response.setServiceStatus(serviceStatus);
         return response;
     }
 
     public UpdateHotelResponse updateHotel(UpdateHotelRequest request) {
         UpdateHotelResponse response = new UpdateHotelResponse();
-        ServiceStatus serviceStatus = new ServiceStatus();
+        ServiceStatus serviceStatus = errorService.checkHotel(request.getHotelInfo().getName(), request.getHotelInfo().getAddress(), request.getHotelInfo().getRating());
+
+        if (!serviceStatus.getStatusCode().equals("CHECKED")) {
+            response.setServiceStatus(serviceStatus);
+            return response;
+        }
 
         Hotel hotel = hotelRepository.findByHotelId(request.getHotelInfo().getHotelId());
         if (hotel == null) {
@@ -128,7 +136,7 @@ public class HotelService {
         hotelInfo.setAddress(hotel.getAddress());
         hotelInfo.setRating(hotel.getRating());
 
-        for(Amenity amenity: hotel.getAmenities()) {
+        for (Amenity amenity : hotel.getAmenities()) {
             AmenityInfo amenityInfo = new AmenityInfo();
             amenityInfo.setAmenityId(amenity.getAmenityId());
             amenityInfo.setName(amenity.getName());
@@ -145,7 +153,6 @@ public class HotelService {
             serviceStatus.setMessage("Hotel Updated Successfully");
             hotelRepository.save(hotel);
         }
-
         response.setServiceStatus(serviceStatus);
         return response;
     }
@@ -184,7 +191,7 @@ public class HotelService {
             serviceStatus.setStatusCode("NOT_FOUND");
             serviceStatus.setMessage("Amenity Not Found");
         } else {
-            for(Amenity amenityInHotel: hotel.getAmenities()) {
+            for (Amenity amenityInHotel : hotel.getAmenities()) {
                 if (amenityInHotel.getAmenityId().equals(amenity.getAmenityId())) {
                     serviceStatus.setStatusCode("BAD_REQUEST");
                     serviceStatus.setMessage("Amenity Already Available on Hotel");
@@ -198,7 +205,6 @@ public class HotelService {
             response.setAmenityInfo(amenityInfo);
 
             hotel.getAmenities().add(amenity);
-            hotelRepository.save(hotel);
 
             serviceStatus.setStatusCode("SUCCESS");
             serviceStatus.setMessage("Amenity Added Successfully");
@@ -224,9 +230,8 @@ public class HotelService {
             serviceStatus.setStatusCode("NOT_FOUND");
             serviceStatus.setMessage("Amenity Not Found");
         } else {
-            for(Amenity amenityInHotel: hotel.getAmenities()) {
+            for (Amenity amenityInHotel : hotel.getAmenities()) {
                 if (amenityInHotel.getAmenityId().equals(amenity.getAmenityId())) {
-                    //hotel.deleteAmenityFromSet(amenity);
                     hotel.getAmenities().remove(amenity);
                     hotelRepository.save(hotel);
 
@@ -239,7 +244,6 @@ public class HotelService {
             serviceStatus.setStatusCode("BAD_REQUEST");
             serviceStatus.setMessage("Amenity Not Available on Hotel");
         }
-
         response.setServiceStatus(serviceStatus);
         return response;
     }
