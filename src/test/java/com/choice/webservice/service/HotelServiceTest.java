@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import com.choice.gs_ws.*;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -75,6 +76,29 @@ public class HotelServiceTest {
     }
 
     @Test
+    public void shouldThrowDataAccessResourceFailureExceptionWhenGettingHotelByIdResponse() {
+        GetHotelByIdRequest request = new GetHotelByIdRequest();
+        request.setHotelId(1L);
+
+        when(hotelRepository.findByHotelId(Mockito.anyLong())).thenThrow(DataAccessResourceFailureException.class);
+        GetHotelByIdResponse found = hotelService.getHotelById(request);
+
+        assertEquals("INTERNAL_SERVER_ERROR", found.getServiceStatus().getStatusCode());
+    }
+
+    @Test
+    public void shouldThrowRuntimeExceptionWhenGettingHotelByIdResponse() {
+        GetHotelByIdRequest request = new GetHotelByIdRequest();
+        request.setHotelId(1L);
+
+        when(hotelRepository.findByHotelId(Mockito.anyLong())).thenThrow(RuntimeException.class);
+        GetHotelByIdResponse found = hotelService.getHotelById(request);
+
+        assertEquals("INTERNAL_SERVER_ERROR", found.getServiceStatus().getStatusCode());
+        assertEquals("There was an error when getting hotel!", found.getServiceStatus().getMessage());
+    }
+
+    @Test
     public void shouldGetAllHotelsWithFilteringResponse() {
         GetAllHotelsWithFilteringRequest request = new GetAllHotelsWithFilteringRequest();
         request.setPageNumber(0);
@@ -94,6 +118,10 @@ public class HotelServiceTest {
         hotelList.add(hotel1);
         hotelList.add(hotel2);
 
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkPagination(request.getPageNumber(), request.getPageSize())).thenReturn(serviceStatus);
         Pageable page = PageRequest.of(request.getPageNumber(), request.getPageSize());
         when(hotelRepository.findByNameContaining(request.getNameFilter(), page)).thenReturn(hotelList);
         GetAllHotelsWithFilteringResponse found = hotelService.getAllHotelsWithFiltering(request);
@@ -109,6 +137,43 @@ public class HotelServiceTest {
         assertEquals("Gandara 2", found.getHotelInfo().stream().toList().get(1).getName());
         assertEquals("Blvd Kino 405", found.getHotelInfo().stream().toList().get(1).getAddress());
         assertEquals(4, found.getHotelInfo().stream().toList().get(1).getRating());
+    }
+
+    @Test
+    public void shouldThrowDataAccessResourceFailureExceptionWhenGettingHotelsResponse() {
+        GetAllHotelsWithFilteringRequest request = new GetAllHotelsWithFilteringRequest();
+        request.setPageNumber(0);
+        request.setPageSize(5);
+        request.setNameFilter("a");
+
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkPagination(request.getPageNumber(), request.getPageSize())).thenReturn(serviceStatus);
+
+        when(hotelRepository.findByNameContaining(Mockito.any(), Mockito.any())).thenThrow(DataAccessResourceFailureException.class);
+        GetAllHotelsWithFilteringResponse found = hotelService.getAllHotelsWithFiltering(request);
+
+        assertEquals("INTERNAL_SERVER_ERROR", found.getServiceStatus().getStatusCode());
+    }
+
+    @Test
+    public void shouldThrowRuntimeExceptionWhenGettingHotelsResponse() {
+        GetAllHotelsWithFilteringRequest request = new GetAllHotelsWithFilteringRequest();
+        request.setPageNumber(0);
+        request.setPageSize(5);
+        request.setNameFilter("a");
+
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+
+        when(errorService.checkPagination(request.getPageNumber(), request.getPageSize())).thenReturn(serviceStatus);
+
+        when(hotelRepository.findByNameContaining(Mockito.any(), Mockito.any())).thenThrow(RuntimeException.class);
+        GetAllHotelsWithFilteringResponse found = hotelService.getAllHotelsWithFiltering(request);
+
+        assertEquals("INTERNAL_SERVER_ERROR", found.getServiceStatus().getStatusCode());
+        assertEquals("There was an error when getting hotels!", found.getServiceStatus().getMessage());
     }
 
     @Test
@@ -318,6 +383,29 @@ public class HotelServiceTest {
 
         assertEquals("SUCCESS", found.getServiceStatus().getStatusCode());
         assertEquals("Hotel Deleted Successfully", found.getServiceStatus().getMessage());
+    }
+
+    @Test
+    public void shouldThrowDataAccessResourceFailureExceptionWhenDeletingHotelResponse() {
+        DeleteHotelRequest request = new DeleteHotelRequest();
+        request.setHotelId(1L);
+
+        when(hotelRepository.findByHotelId(Mockito.anyLong())).thenThrow(DataAccessResourceFailureException.class);
+        DeleteHotelResponse found = hotelService.deleteHotel(request);
+
+        assertEquals("INTERNAL_SERVER_ERROR", found.getServiceStatus().getStatusCode());
+    }
+
+    @Test
+    public void shouldThrowRuntimeExceptionWhenDeletingHotelResponse() {
+        DeleteHotelRequest request = new DeleteHotelRequest();
+        request.setHotelId(1L);
+
+        when(hotelRepository.findByHotelId(Mockito.anyLong())).thenThrow(RuntimeException.class);
+        DeleteHotelResponse found = hotelService.deleteHotel(request);
+
+        assertEquals("INTERNAL_SERVER_ERROR", found.getServiceStatus().getStatusCode());
+        assertEquals("There was an error when deleting hotel!", found.getServiceStatus().getMessage());
     }
 
     @Test

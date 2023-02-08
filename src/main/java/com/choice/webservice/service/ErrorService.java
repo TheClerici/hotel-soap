@@ -28,4 +28,21 @@ public class ErrorService {
         }
         return serviceStatus;
     }
+
+    public ServiceStatus checkPagination(Integer number, Integer size) {
+        ServiceStatus serviceStatus = new ServiceStatus();
+        serviceStatus.setStatusCode("CHECKED");
+        try {
+            if (number == null && size == null)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No pagination provided.");
+            else if (number == null || number < 0)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page index must not be less than zero");
+            else if (size == null || size < 1)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page size must not be less than one");
+        } catch (ResponseStatusException e) {
+            serviceStatus.setStatusCode("BAD_REQUEST");
+            serviceStatus.setMessage(e.getReason());
+        }
+        return serviceStatus;
+    }
 }
